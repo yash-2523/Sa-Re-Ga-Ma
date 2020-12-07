@@ -3,6 +3,14 @@ const ytdl = require('ytdl-core');
 const youtube = require('youtube-sr');
 // const musicaddon = require('discord-dynamic-music-bot-addon');
 const dotenv = require('dotenv').config();
+
+var http = require('http');
+var PORT = process.env.PORT || 3000
+//create a server object:
+http.createServer(function (req, res) {
+  res.write('Hello World!'); //write a response to the client
+  res.end(); //end the response
+}).listen(PORT); //the server object listens on port 8080
 const commands = process.env.Commands.split(',');
 
 let Songqueue = new Map();
@@ -163,3 +171,4 @@ const HandlingVoiceChannel = (async (msg) =>{
 })
 
 client.login(process.env.Token);
+
