@@ -122,7 +122,7 @@ let playMusic = async (msg,song) => {
     
     
 
-    msg.channel.send("Playing "+song.title);   
+    msg.channel.send("Playing now "+song.title);   
     
 
 }
