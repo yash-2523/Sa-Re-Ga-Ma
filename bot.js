@@ -33,42 +33,44 @@ client.on('message',async (msg) => {
             return;
         }
         if(args[1] != 'recommend'){
-              var VoiceChannelConnection = null;
-//             var proms = [];
-        
-//             proms.push(HandlingVoiceChannel(msg));
-//             if(!VoiceChannelConnection[0]){
-//                 return;
-//             }
-            
-            
-
-             let serverqueue = null;
-
-//             if(serverqueue && VoiceChannelConnection[1] != null){
-//                 if(serverqueue[0] !== VoiceChannelConnection[1]){
-//                     serverqueue[0]=VoiceChannelConnection[1];
-//                 }
-//             }
+            var VoiceChannelConnection = null;
+            var proms = [];
+            let serverqueue = null;
             if(args[1]==commands[0] || args[1]==commands[1]){
                 const songsearch = args.slice(2,args.length).join(" ");
-                let songinfo;
-                try{
-                    let songsearchResult = await youtube.search(songsearch,{limit : 1});
-                    songinfo = {
+//                 let songinfo;
+//                 try{
+//                     let songsearchResult = await youtube.search(songsearch,{limit : 1});
+//                     songinfo = {
+//                         id: songsearchResult[0].id,
+//                         title: songsearchResult[0].title,
+//                         url: songsearchResult[0].thumbnail.url,
+//                     };
+                    
+//                 }catch(err){
+//                     console.log(err);
+//                     msg.channel.send("Unable to find the song");
+//                     return;
+//                 }
+              
+                proms.push(HandlingVoiceChannel(msg));
+                const sss =  async function (songsearch, msg){
+                  return youtube.search(songsearch, {limit: 1}).then((songsearchResult)=>{
+                    return {
                         id: songsearchResult[0].id,
                         title: songsearchResult[0].title,
                         url: songsearchResult[0].thumbnail.url,
                     };
-                    
-                }catch(err){
+                  }).catch((err)=>{
                     console.log(err);
                     msg.channel.send("Unable to find the song");
                     return;
+                  });
                 }
-              
-              
-                HandlingVoiceChannel(msg).then((data)=>{
+                proms.push(sss(songsearch, msg));
+                Promise.all(proms).then((datas)=>{
+                  var data = datas[0];
+                  var songinfo = datas[1];
                   VoiceChannelConnection = data;
                   serverqueue = Songqueue.get(msg.guild.id);
                   if(serverqueue && VoiceChannelConnection[1] != null){
