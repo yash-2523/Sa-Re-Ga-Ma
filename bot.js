@@ -33,23 +33,23 @@ client.on('message',async (msg) => {
             return;
         }
         if(args[1] != 'recommend'){
-
-            
+              var VoiceChannelConnection = None;
+//             var proms = [];
         
-            const VoiceChannelConnection = await HandlingVoiceChannel(msg);
-            if(!VoiceChannelConnection[0]){
-                return;
-            }
+//             proms.push(HandlingVoiceChannel(msg));
+//             if(!VoiceChannelConnection[0]){
+//                 return;
+//             }
             
             
 
-            let serverqueue = Songqueue.get(msg.guild.id);
+             let serverqueue = None;
 
-            if(serverqueue && VoiceChannelConnection[1] != null){
-                if(serverqueue[0] !== VoiceChannelConnection[1]){
-                    serverqueue[0]=VoiceChannelConnection[1];
-                }
-            }
+//             if(serverqueue && VoiceChannelConnection[1] != null){
+//                 if(serverqueue[0] !== VoiceChannelConnection[1]){
+//                     serverqueue[0]=VoiceChannelConnection[1];
+//                 }
+//             }
             if(args[1]==commands[0] || args[1]==commands[1]){
                 const songsearch = args.slice(2,args.length).join(" ");
                 let songinfo;
@@ -66,26 +66,33 @@ client.on('message',async (msg) => {
                     msg.channel.send("Unable to find the song");
                     return;
                 }
-                
-                if(serverqueue){
-                    
-                    if(args[1]==commands[0]){
-                        serverqueue[1].push(songinfo);
-                        msg.channel.send(songinfo.title + " Added to the queue");
-                    }
-                    else{
-                        serverqueue[1][0] = songinfo;
-                        playMusic(msg,serverqueue[1][0]);
-                    }
-                }
-                else{
-                    // console.log(VoiceChannelConnection[1]);
-                    Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo]]);
-                    serverqueue = Songqueue.get(msg.guild.id);
-                    playMusic(msg,serverqueue[1][0]);
-                }
-
-                
+              
+              
+                HandlingVoiceChannel(msg).then((data)=>{
+                  VoiceChannelConnection = data;
+                  serverqueue = Songqueue.get(msg.guild.id);
+                  if(serverqueue && VoiceChannelConnection[1] != null){
+                      if(serverqueue[0] !== VoiceChannelConnection[1]){
+                          serverqueue[0]=VoiceChannelConnection[1];
+                      }
+                  }
+                  if(serverqueue){
+                      if(args[1]==commands[0]){
+                          serverqueue[1].push(songinfo);
+                          msg.channel.send(songinfo.title + " Added to the queue");
+                      }
+                      else{
+                          serverqueue[1][0] = songinfo;
+                          playMusic(msg,serverqueue[1][0]);
+                      }
+                  }
+                  else{
+                      // console.log(VoiceChannelConnection[1]);
+                      Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo]]);
+                      serverqueue = Songqueue.get(msg.guild.id);
+                      playMusic(msg,serverqueue[1][0]);
+                  }
+                });
                 
             }
 
