@@ -33,7 +33,7 @@ client.on('message',async (msg) => {
             return;
         }
         if(args[1] != 'recommend'){
-              var VoiceChannelConnection = None;
+              var VoiceChannelConnection = null;
 //             var proms = [];
         
 //             proms.push(HandlingVoiceChannel(msg));
@@ -43,7 +43,7 @@ client.on('message',async (msg) => {
             
             
 
-             let serverqueue = None;
+             let serverqueue = null;
 
 //             if(serverqueue && VoiceChannelConnection[1] != null){
 //                 if(serverqueue[0] !== VoiceChannelConnection[1]){
