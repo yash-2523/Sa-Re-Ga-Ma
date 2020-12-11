@@ -95,7 +95,7 @@ client.on('message',async (msg) => {
             }
             else{
                 if(!serverqueue){
-                    msg.channel.send("Nothing to ",args[1]);
+                    msg.channel.send("Nothing to ",toString(args[1]));
                     return;
                 }
                 try{
@@ -189,6 +189,7 @@ let playMusic = async (msg,song) => {
         if(msg.guild.voice && msg.guild.voice.channel){
             await msg.guild.voice.channel.leave();
         }
+        msg.channel.send("Queue is Empty");
         Songqueue.delete(msg.guild.id);
         return;
     }
