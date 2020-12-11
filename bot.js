@@ -4,13 +4,6 @@ const youtube = require('youtube-sr');
 // const musicaddon = require('discord-dynamic-music-bot-addon');
 const dotenv = require('dotenv').config();
 
-var http = require('http');
-var PORT = process.env.PORT || 3000
-//create a server object:
-http.createServer(function (req, res) {
-  res.write('Hello World!'); //write a response to the client
-  res.end(); //end the response
-}).listen(PORT); //the server object listens on port 8080
 const commands = process.env.Commands.split(',');
 
 let Songqueue = new Map();
@@ -22,6 +15,7 @@ const client = new Discord.Client({
 
 client.on('ready', () => {
     console.log("Bot is ready");
+    Songqueue.clear();
 })
 
 client.on('message',async (msg) => {
@@ -33,99 +27,194 @@ client.on('message',async (msg) => {
             return;
         }
         if(args[1] != 'recommend'){
-
+            var VoiceChannelConnection = null;
+            var proms = [];
             
-        
-            const VoiceChannelConnection = await HandlingVoiceChannel(msg);
-            if(!VoiceChannelConnection[0]){
-                return;
-            }
-            
-            
-
-            let serverqueue = Songqueue.get(msg.guild.id);
-
-            if(serverqueue && VoiceChannelConnection[1] != null){
-                if(serverqueue[0] !== VoiceChannelConnection[1]){
-                    serverqueue[0]=VoiceChannelConnection[1];
-                }
-            }
+            let serverqueue=Songqueue.get(msg.guild.id);
             if(args[1]==commands[0] || args[1]==commands[1]){
                 const songsearch = args.slice(2,args.length).join(" ");
-                let songinfo;
-                try{
-                    let songsearchResult = await youtube.search(songsearch,{limit : 1});
-                    songinfo = {
-                        id: songsearchResult[0].id,
-                        title: songsearchResult[0].title,
-                        url: songsearchResult[0].thumbnail.url,
-                    };
-                    
-                }catch(err){
-                    console.log(err);
-                    msg.channel.send("Unable to find the song");
-                    return;
-                }
-                
-                if(serverqueue){
-                    
-                    if(args[1]==commands[0]){
-                        serverqueue[1].push(songinfo);
-                        msg.channel.send(songinfo.title + " Added to the queue");
+              
+                proms.push(HandlingVoiceChannel(msg));
+                proms.push(youtube.search(songsearch, {limit: 1}));
+                Promise.allSettled(proms).then(async (datas)=>{
+                  
+                  var data = datas[0].value;
+                  var songinfo = datas[1].value;
+                  VoiceChannelConnection = data;
+                  
+                  if(VoiceChannelConnection[0]){
+                      
+                  
+                        
+                        if(serverqueue && VoiceChannelConnection[1] != null){
+                            if(serverqueue[0] !== VoiceChannelConnection[1]){
+                                serverqueue[0]=VoiceChannelConnection[1];
+                            }
+                        }
+
+                        songinfo = {
+                            id: songinfo[0].id,
+                            title: songinfo[0].title,
+                            url: songinfo[0].thumbnail.url
+                        }
+                        
+                        if(serverqueue){
+                            
+                            if(args[1]==commands[0]){
+                                serverqueue[1].push(songinfo);
+                                msg.channel.send(songinfo.title + " Added to the queue");
+                            }
+                            else{
+                                serverqueue[1][0] = songinfo;
+                                playMusic(msg,serverqueue[1][0]);
+                            }
+                        }
+                        else{
+                            // console.log(VoiceChannelConnection[1]);
+                            Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo]],null);
+                            serverqueue = Songqueue.get(msg.guild.id);
+                            playMusic(msg,serverqueue[1][0]);
+                        }
                     }
                     else{
-                        serverqueue[1][0] = songinfo;
-                        playMusic(msg,serverqueue[1][0]);
+                        console.log("leave ");
+                        if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                            await msg.guild.voice.channel.leave();
+                            Songqueue.delete(msg.guild.id);
+                        }
                     }
-                }
-                else{
-                    // console.log(VoiceChannelConnection[1]);
-                    Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo]]);
-                    serverqueue = Songqueue.get(msg.guild.id);
-                    playMusic(msg,serverqueue[1][0]);
-                }
-
-                
+                }).catch(async (err) => {
+                    
+                    msg.channel.send("Unable to play the song you requested");
+                    if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                        await msg.guild.voice.channel.leave();
+                        Songqueue.delete(msg.guild.id);
+                    }
+                });
                 
             }
+            else{
+                if(!serverqueue){
+                    msg.channel.send("Nothing to ",args[1]);
+                    return;
+                }
+                try{
+                    VoiceChannelConnection = await HandlingVoiceChannel(msg);
+                }catch(err){
+                    msg.channel.send("Some error occured");
+                    if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                        await msg.guild.voice.channel.leave();
+                        Songqueue.delete(msg.guild.id);
+                    }
+                    return;
+                }
+                    
+                if(!VoiceChannelConnection[0]){
+                    if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                        await msg.guild.voice.channel.leave();
+                        Songqueue.delete(msg.guild.id);
+                    }
+                    return;
+                }   
+                
+                if(serverqueue && VoiceChannelConnection[1] != null){
+                    if(serverqueue[0] !== VoiceChannelConnection[1]){
+                        serverqueue[0]=VoiceChannelConnection[1];
+                    }
+                }
+                if(args[1]==commands[2] || args[1]==commands[3]){
+                    
+    
+                    PauseMusic(serverqueue[2],args[1],msg);
+                }
+                if(args[1]==commands[5]){
+                    msg.channel.send("Skipped");
+                    SkipMusic(msg);
+                }
+                if(args[1]==commands[4]){
+                    StopMusic(msg);
+                }
+                
+                
 
-                       
+            }
 
 
         }
         else{
-
+            
         }
     }
-})
+});
+
+let StopMusic = async (msg) => {
+    if(msg.guild.voice && msg.guild.voice.channel){
+        await msg.guild.voice.channel.leave();
+    }
+    Songqueue.delete(msg.guild.id);
+    return;
+}
+
+let SkipMusic = async (msg) => {
+    let serverqueue = Songqueue.get(msg.guild.id);
+    serverqueue[1].shift();
+    playMusic(msg,serverqueue[1][0]);
+}
+
+let PauseMusic = async (Dispatcher,cmd,msg) =>{
+    if(cmd == 'pause'){
+        try{
+            await Dispatcher.pause();
+            msg.channel.send("Paused");
+        }catch(err){
+            console.log(err);
+            msg.channel.send("Unable to pause");
+        }
+    }
+    else{
+        try{
+            await Dispatcher.resume();
+            msg.channel.send("Resumed");
+        }catch(err){
+            msg.channel.send("Unable to start");
+        }
+    }
+}
 
 let playMusic = async (msg,song) => {
 
-    const serverqueue = Songqueue.get(msg.guild.id);
+    let serverqueue = Songqueue.get(msg.guild.id);
     if(!song){
-        await msg.guild.voice.channel.leave();
+        console.log(song);
+        if(msg.guild.voice && msg.guild.voice.channel){
+            await msg.guild.voice.channel.leave();
+        }
         Songqueue.delete(msg.guild.id);
         return;
     }
-    let MusicPlayer = await serverqueue[0];
+    let MusicPlayer = serverqueue[0];
 
     
     
     
         let Dispatcher = MusicPlayer.play(ytdl('https://www.youtube.com/watch?v='+song.id,{filter: "audioonly",quality: "highestaudio"}));
         
-        
+        serverqueue[2]=Dispatcher;
         Dispatcher.on("finish", () => {
             serverqueue[1].shift();
             playMusic(msg,serverqueue[1][0]);
         });
         Dispatcher.on("error",async (err) => {
-            console.log(err);
+            
             msg.channel.send("Unable to play the music");
-            await msg.guild.voice.channel.leave();
+            if(msg.guild.voice && msg.guild.voice.channel){
+                await msg.guild.voice.channel.leave();
+            }
             Songqueue.delete(msg.guild.id);
             return;
         })
+
+        
         
     
     
@@ -135,6 +224,8 @@ let playMusic = async (msg,song) => {
 
 }
 
+
+
 const HandlingVoiceChannel = (async (msg) =>{
     const AuthorVoiceChannel = msg.member.voice.channel;
     let ConnectionsToVoiceChannel = true,dispacter=null;
@@ -143,19 +234,11 @@ const HandlingVoiceChannel = (async (msg) =>{
         ConnectionsToVoiceChannel = false;
     }
     else{
-        if(msg.guild.voice){
+        if(msg.guild.voice && msg.guild.voice.channel){
             if(msg.member.voice.channel.id != msg.guild.voice.channelID){
-                if(msg.guild.ownerID == msg.author.id){
-                    try{
-                        dispacter = await AuthorVoiceChannel.join();
-                    }catch(err){
-                        msg.channel.send("Unable to join "+AuthorVoiceChannel.name+" Channel");
-                        ConnectionsToVoiceChannel = false
-                    }
-                }
-                else{
+                
                     msg.reply("Please join "+msg.guild.voice.channel.name+" Channel")
-                }
+                
             }
         }
         else{
@@ -171,4 +254,7 @@ const HandlingVoiceChannel = (async (msg) =>{
 })
 
 client.login(process.env.Token);
+
+
+
 
