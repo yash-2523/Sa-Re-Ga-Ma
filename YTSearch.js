@@ -1,7 +1,12 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 
 let youtubeSearch = async (SongToSearch) =>{
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+  ],
+});
     
     const page = await browser.newPage();
     await page.setViewport({
