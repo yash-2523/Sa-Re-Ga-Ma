@@ -3,7 +3,7 @@ const ytdl = require('ytdl-core');
 const youtube = require('youtube-sr');
 // const musicaddon = require('discord-dynamic-music-bot-addon');
 const dotenv = require('dotenv').config();
-const youtuberecommend = require('./YTSearch');
+const youtuberecommend = require('./YTSearch.js');
 
 const commands = process.env.Commands.split(',');
 
