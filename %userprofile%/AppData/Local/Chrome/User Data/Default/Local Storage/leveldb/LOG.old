@@ -1,0 +1,8 @@
+2020/12/12-11:28:54.328 42e4 Reusing MANIFEST C:\Users\yash\Documents\Projects\Discord_Bot\%userprofile%\AppData\Local\Chrome\User Data\Default\Local Storage\leveldb/MANIFEST-000001
+2020/12/12-11:28:54.329 42e4 Recovering log #110
+2020/12/12-11:28:54.330 42e4 Level-0 table #112: started
+2020/12/12-11:28:54.334 42e4 Level-0 table #112: 13939 bytes OK
+2020/12/12-11:28:54.334 42e4 Recovering log #112
+2020/12/12-11:28:54.335 42e4 Reusing old log C:\Users\yash\Documents\Projects\Discord_Bot\%userprofile%\AppData\Local\Chrome\User Data\Default\Local Storage\leveldb/000112.log 
+2020/12/12-11:28:54.340 42e4 Delete type=0 #110
+2020/12/12-11:28:54.340 42e4 Delete type=2 #113

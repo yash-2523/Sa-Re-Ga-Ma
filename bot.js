@@ -3,6 +3,7 @@ const ytdl = require('ytdl-core');
 const youtube = require('youtube-sr');
 // const musicaddon = require('discord-dynamic-music-bot-addon');
 const dotenv = require('dotenv').config();
+const youtuberecommend = require('./YTSearch');
 
 const commands = process.env.Commands.split(',');
 
@@ -26,126 +27,147 @@ client.on('message',async (msg) => {
             msg.channel.send("Please Provide the command");
             return;
         }
-        if(args[1] != 'recommend'){
-            var VoiceChannelConnection = null;
-            var proms = [];
+        let serverqueue=Songqueue.get(msg.guild.id);
+        
+        var VoiceChannelConnection = null;
+        var proms = [];
+        
+        
+        if(args[1]==commands[0] || args[1]==commands[1]){
+            const songsearch = args.slice(2,args.length).join(" ");
             
-            let serverqueue=Songqueue.get(msg.guild.id);
-            if(args[1]==commands[0] || args[1]==commands[1]){
-                const songsearch = args.slice(2,args.length).join(" ");
-              
-                proms.push(HandlingVoiceChannel(msg));
-                proms.push(youtube.search(songsearch, {limit: 1}));
-                Promise.allSettled(proms).then(async (datas)=>{
-                  
-                  var data = datas[0].value;
-                  var songinfo = datas[1].value;
-                  VoiceChannelConnection = data;
-                  
-                  if(VoiceChannelConnection[0]){
-                      
-                  
-                        
-                        if(serverqueue && VoiceChannelConnection[1] != null){
-                            if(serverqueue[0] !== VoiceChannelConnection[1]){
-                                serverqueue[0]=VoiceChannelConnection[1];
-                            }
+            proms.push(HandlingVoiceChannel(msg));
+            proms.push(youtube.search(songsearch,{limit: 1}));
+            Promise.allSettled(proms).then(async (datas)=>{
+                
+                var data = datas[0].value;
+                var songinfo = datas[1].value;
+                VoiceChannelConnection = data;
+                
+                if(VoiceChannelConnection[0]){
+                    
+                
+                    
+                    if(serverqueue && VoiceChannelConnection[1] != null){
+                        if(serverqueue[0] !== VoiceChannelConnection[1]){
+                            serverqueue[0]=VoiceChannelConnection[1];
                         }
+                    }
 
-                        songinfo = {
-                            id: songinfo[0].id,
-                            title: songinfo[0].title,
-                            url: songinfo[0].thumbnail.url
-                        }
+                    songinfo = {
+                        id : songinfo[0].id,
+                        title: songinfo[0].title
+                    };
+                    Recommendation(msg,songinfo);
+                    if(serverqueue){
                         
-                        if(serverqueue){
-                            
-                            if(args[1]==commands[0]){
-                                serverqueue[1].push(songinfo);
-                                msg.channel.send(songinfo.title + " Added to the queue");
-                            }
-                            else{
-                                serverqueue[1][0] = songinfo;
-                                playMusic(msg,serverqueue[1][0]);
-                            }
+                        if(args[1]==commands[0]){
+                            serverqueue[1].push(songinfo);
+                            msg.channel.send(songinfo.title + " Added to the queue");
                         }
                         else{
-                            // console.log(VoiceChannelConnection[1]);
-                            Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo]],null);
-                            serverqueue = Songqueue.get(msg.guild.id);
+                            serverqueue[1][0] = songinfo;
                             playMusic(msg,serverqueue[1][0]);
                         }
                     }
                     else{
-                        console.log("leave ");
-                        if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
-                            await msg.guild.voice.channel.leave();
-                            Songqueue.delete(msg.guild.id);
-                        }
+                        // console.log(VoiceChannelConnection[1]);
+                        
+                        Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo],null,[]]);
+                        serverqueue = Songqueue.get(msg.guild.id);
+                        playMusic(msg,serverqueue[1][0]);
                     }
-                }).catch(async (err) => {
-                    
-                    msg.channel.send("Unable to play the song you requested");
+                }
+                else{
+                    console.log("leave ");
                     if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
                         await msg.guild.voice.channel.leave();
                         Songqueue.delete(msg.guild.id);
                     }
-                });
+                }
+            }).catch(async (err) => {
                 
-            }
-            else{
-                if(!serverqueue){
-                    msg.channel.send("Nothing to ",toString(args[1]));
-                    return;
+                msg.channel.send("Unable to play the song you requested");
+                if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                    await msg.guild.voice.channel.leave();
+                    Songqueue.delete(msg.guild.id);
                 }
-                try{
-                    VoiceChannelConnection = await HandlingVoiceChannel(msg);
-                }catch(err){
-                    msg.channel.send("Some error occured");
-                    if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
-                        await msg.guild.voice.channel.leave();
-                        Songqueue.delete(msg.guild.id);
-                    }
-                    return;
-                }
-                    
-                if(!VoiceChannelConnection[0]){
-                    if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
-                        await msg.guild.voice.channel.leave();
-                        Songqueue.delete(msg.guild.id);
-                    }
-                    return;
-                }   
-                
-                if(serverqueue && VoiceChannelConnection[1] != null){
-                    if(serverqueue[0] !== VoiceChannelConnection[1]){
-                        serverqueue[0]=VoiceChannelConnection[1];
-                    }
-                }
-                if(args[1]==commands[2] || args[1]==commands[3]){
-                    
-    
-                    PauseMusic(serverqueue[2],args[1],msg);
-                }
-                if(args[1]==commands[5]){
-                    msg.channel.send("Skipped");
-                    SkipMusic(msg);
-                }
-                if(args[1]==commands[4]){
-                    StopMusic(msg);
-                }
-                
-                
-
-            }
-
-
-        }
-        else{
+            });
             
         }
+        else{
+            if(!serverqueue){
+                msg.channel.send("Nothing to ",toString(args[1]));
+                return;
+            }
+            try{
+                VoiceChannelConnection = await HandlingVoiceChannel(msg);
+            }catch(err){
+                msg.channel.send("Some error occured");
+                if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                    await msg.guild.voice.channel.leave();
+                    Songqueue.delete(msg.guild.id);
+                }
+                return;
+            }
+                
+            if(!VoiceChannelConnection[0]){
+                if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
+                    await msg.guild.voice.channel.leave();
+                    Songqueue.delete(msg.guild.id);
+                }
+                return;
+            }   
+            
+            if(serverqueue && VoiceChannelConnection[1] != null){
+                if(serverqueue[0] !== VoiceChannelConnection[1]){
+                    serverqueue[0]=VoiceChannelConnection[1];
+                }
+            }
+            if(args[1]==commands[2] || args[1]==commands[3]){
+                
+
+                PauseMusic(serverqueue[2],args[1],msg);
+            }
+            if(args[1]==commands[5]){
+                msg.channel.send("Skipped");
+                SkipMusic(msg);
+            }
+            if(args[1]==commands[4]){
+                StopMusic(msg);
+            }
+
+            if(args[1]==commands[6]){
+                if(serverqueue[3].length <= 0){
+                    msg.channel.send("Nothing to Recommend. Play atleast one song");
+                    
+                }
+                else{
+
+                    serverqueue[3] = shuffleArray(serverqueue[3]);
+
+                    serverqueue[1][0] = serverqueue[3][0];
+                    serverqueue[3].shift();
+                    Recommendation(msg,serverqueue[1][0]);
+                    playMusic(msg,serverqueue[1][0]);
+                }
+            }
+            
+            
+
+        }
+
+
     }
 });
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
 let StopMusic = async (msg) => {
     if(msg.guild.voice && msg.guild.voice.channel){
@@ -223,6 +245,19 @@ let playMusic = async (msg,song) => {
     msg.channel.send("Playing now "+song.title);   
     
 
+}
+
+let Recommendation = async (msg,song) => {
+    const serverqueue = Songqueue.get(msg.guild.id);
+    if(serverqueue){
+        youtuberecommend.youtubeSearch(song.id).then(data => {
+                
+                serverqueue[3].push(data);
+            
+        }).catch(err => {
+            console.log(err);
+        });
+    }
 }
 
 
