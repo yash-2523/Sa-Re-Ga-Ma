@@ -32,20 +32,3 @@ let youtubeSearch = async (SongToSearch) =>{
 module.exports = {youtubeSearch};
 
 
-// const Crawler = require('crawler');
-
-// let c = new Crawler({
-//     // jQuery:false,
-//     callback: function (err,res,done){
-//         if(err){
-//             console.log(err);
-//         }
-//         else{
-            
-//             console.log(res.body.length);
-//         }
-//         done();
-//     }
-// })
-
-// c.queue('https://www.youtube.com/results?search_query=Scam+1992+bgm');
