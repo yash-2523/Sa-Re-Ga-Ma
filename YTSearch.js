@@ -1,26 +1,14 @@
 const puppeteer = require('puppeteer');
 
 let youtubeSearch = async (SongToSearch) =>{
-    const browser = await puppeteer.launch({headless: false,executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    args: [
-        '--user-data-dir=%userprofile%\\AppData\\Local\\Chrome\\User Data',
-        '--profile-directory=Profile 8'
-    ]});
+    const browser = await puppeteer.launch();
     
     const page = await browser.newPage();
     await page.setViewport({
         width:1520,
         height:1080
     })
-    // await page.setRequestInterception(true);
-    // page.on('request', (req) => {
-    //     if(['image','media','stylesheet','font'].includes(req.resourceType())){
-    //         req.abort();
-    //     }
-    //     else{
-    //         req.continue();
-    //     }
-    // })
+    
     const url = "https://www.youtube.com/watch?v="+SongToSearch;
     
     await page.goto(url);
