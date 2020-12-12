@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 
 let youtubeSearch = async (SongToSearch) =>{
     const browser = await puppeteer.launch({
