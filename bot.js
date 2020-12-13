@@ -58,9 +58,9 @@ client.on('message',async (msg) => {
                         id : songinfo[0].id,
                         title: songinfo[0].title
                     };
-                    Recommendation(msg,songinfo);
+                    
                     if(serverqueue){
-                        
+                        Recommendation(msg,songinfo);
                         if(args[1]==commands[0]){
                             serverqueue[1].push(songinfo);
                             msg.channel.send(songinfo.title + " Added to the queue");
@@ -76,6 +76,7 @@ client.on('message',async (msg) => {
                         Songqueue.set(msg.guild.id,[VoiceChannelConnection[1],[songinfo],null,[]]);
                         serverqueue = Songqueue.get(msg.guild.id);
                         playMusic(msg,serverqueue[1][0]);
+                        Recommendation(msg,songinfo);
                     }
                 }
                 else{
@@ -145,11 +146,15 @@ client.on('message',async (msg) => {
                 else{
 
                     serverqueue[3] = shuffleArray(serverqueue[3]);
-
+                    
                     serverqueue[1][0] = serverqueue[3][0];
                     serverqueue[3].shift();
                     Recommendation(msg,serverqueue[1][0]);
                     playMusic(msg,serverqueue[1][0]);
+
+                    if(serverqueue[3] <= 3){
+                        msg.channel.send("Play some more somgs for better recommendation");
+                    }
                 }
             }
             
