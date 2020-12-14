@@ -58,6 +58,13 @@ client.on('message',async (msg) => {
                         id : songinfo[0].id,
                         title: songinfo[0].title
                     };
+
+                    // VoiceChannelConnection[1].on('disconnect', async () => {
+                    //     console.log("Disconnected");
+                    //     await Songqueue.delete(msg.guild.id);
+                    //     serverqueue = null;
+                    //     return;
+                    // })
                     
                     if(serverqueue){
                         Recommendation(msg,songinfo);
