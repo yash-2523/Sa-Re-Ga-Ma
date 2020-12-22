@@ -252,6 +252,8 @@ client.on('message',async (msg) => {
 
                     if(serverqueue[3].size <= 3){
                         msg.channel.send("`Play some more songs for better recommendation` :eyes:");
+                    }else if(serverqueue[3].get(RecommendationSong[1][0]) > 5){
+                        msg.channel.send("`Play some more songs for better recommendation` :eyes:");
                     }
                 }
             }
