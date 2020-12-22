@@ -19,6 +19,8 @@ client.on('ready', () => {
     Songqueue.clear();
 })
 
+const file = new Discord.MessageAttachment('./Sa_Re_Ga_Ma.png')
+
 client.on('guildCreate', (guild)=>{
     const WelcomeMsg = {
         color: '#A5E9E1',
@@ -39,17 +41,17 @@ client.on('guildCreate', (guild)=>{
 
     };
     if(guild.systemChannel){
-        msg.channel.send({files: [file],embed : WelcomeMsg})
+        guild.systemChannel.send({files: [file],embed : WelcomeMsg})
         return;
     }
     guild.channels.cache.forEach((channel) => {
         if(channel.type == "text"){
-            msg.channel.send({files: [file],embed : WelcomeMsg})
+            channel.send({files: [file],embed : WelcomeMsg})
             return;
         }
     });
 })
-const file = new Discord.MessageAttachment('./Sa_Re_Ga_Ma.png')
+
 client.on('message',async (msg) => {
 
     
@@ -237,7 +239,7 @@ client.on('message',async (msg) => {
                 else{
                     
                     let RecommendationSong = getRandomKey(serverqueue[3]);
-
+                    console.log(RecommendationSong);
                        
                     let recomendedSong = RecommendationSong[0][Math.floor(Math.random() * RecommendationSong[0].length)];
                     serverqueue[3].set(recomendedSong,serverqueue[3].get(recomendedSong)+1);
@@ -251,6 +253,9 @@ client.on('message',async (msg) => {
                     playMusic(msg,serverqueue[1][0]);
 
                     if(serverqueue[3].size <= 3){
+                        msg.channel.send("`Play some more songs for better recommendation` :eyes:");
+                    }
+                    else if(serverqueue[3].get(RecommendationSong[1][0]) > 5){
                         msg.channel.send("`Play some more songs for better recommendation` :eyes:");
                     }
                 }
