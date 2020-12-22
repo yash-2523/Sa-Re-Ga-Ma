@@ -239,7 +239,6 @@ client.on('message',async (msg) => {
                 else{
                     
                     let RecommendationSong = getRandomKey(serverqueue[3]);
-                    console.log(RecommendationSong);
                        
                     let recomendedSong = RecommendationSong[0][Math.floor(Math.random() * RecommendationSong[0].length)];
                     serverqueue[3].set(recomendedSong,serverqueue[3].get(recomendedSong)+1);
