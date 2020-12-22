@@ -19,22 +19,93 @@ client.on('ready', () => {
     Songqueue.clear();
 })
 
+client.on('guildCreate', (guild)=>{
+    const WelcomeMsg = {
+        color: '#A5E9E1',
+        title: 'Thank you for inviting SA Re GA MA',
+        description: 'I will `play and recommend` amazing songs for you :sunglasses: ',
+        thumbnail: {
+            url: 'attachment://Sa_Re_Ga_Ma.png'
+        },
+        fields: [
+            {
+                name: 'Use `# help` command to get started with',
+                value:'Start listening your desired song right now :wink: '
+                
+            }
+        ],
+
+        
+
+    };
+    if(guild.systemChannel){
+        msg.channel.send({files: [file],embed : WelcomeMsg})
+        return;
+    }
+    guild.channels.cache.forEach((channel) => {
+        if(channel.type == "text"){
+            msg.channel.send({files: [file],embed : WelcomeMsg})
+            return;
+        }
+    });
+})
+const file = new Discord.MessageAttachment('./Sa_Re_Ga_Ma.png')
 client.on('message',async (msg) => {
+
+    
     if(msg.author.bot){
         return;
     }
     
     if(msg.content.startsWith(process.env.BOT_Prefix)){
         const args = msg.content.split(" ");
-
+            
         if(args[1]==commands[7] && args.length == 2){
-            msg.channel.send("# play - To play your next desired song \n# playnow - To play your desired song right now \n# skip - To skip currently playing song \n# stop - To stop playing songs \n# recommend - To play a recommended song for you");
 
+            const HelpMsg = {
+                color: '#A5E9E1',
+                title: 'Sa Re Ga Ma Commands',
+                description: 'Prefix : `#`',
+
+                fields: [
+                    {
+                        name: `# play`,
+                        value: 'To play your next desired song',
+                    },
+                    {
+                        name: `# playnow`,
+                        value: 'To play your desired song right now',
+                    },
+                    {
+                        name: `# pause`,
+                        value: 'To pause the song',
+                    },
+                    {
+                        name: `# resume`,
+                        value: 'To resume the song',
+                    },
+                    {
+                        name: `# skip`,
+                        value: 'To skip currently playing song',
+                    },
+                    {
+                        name: `# stop`,
+                        value: 'To stop playing songs',
+                    },
+                    {
+                        name: `# recommend`,
+                        value: 'To play a recommended song for you',
+                    },
+                ]
+            }
+
+            msg.channel.send({file: [file],embed: HelpMsg});
+            
             return;
         }
         
         if(args.length==1 || commands.indexOf(args[1]) == -1 || ((args[1]==commands[0] || args[1]==commands[1]) && args.length==2)){
-            msg.channel.send("Please Provide a proper command");
+            msg.channel.send("Please provide a valid command:grey_exclamation:");
             return;
         }
         let serverqueue=Songqueue.get(msg.guild.id);
@@ -66,21 +137,24 @@ client.on('message',async (msg) => {
 
                     songinfo = {
                         id : songinfo[0].id,
-                        title: songinfo[0].title
+                        title: songinfo[0].title,
+                        thumbnail: songinfo[0].thumbnail.url
                     };
-
-                    // VoiceChannelConnection[1].on('disconnect', async () => {
-                    //     console.log("Disconnected");
-                    //     await Songqueue.delete(msg.guild.id);
-                    //     serverqueue = null;
-                    //     return;
-                    // })
-                    
                     if(serverqueue){
                         Recommendation(msg,songinfo);
                         if(args[1]==commands[0]){
                             serverqueue[1].push(songinfo);
-                            msg.channel.send(songinfo.title + " Added to the queue");
+
+                            const AddedQueueMsg = {
+                                color : '#A5E9E1',
+                                title: songinfo.title,
+                                description: 'Added to the queue :thumbsup: ',
+                                thumbnail: {
+                                    url: songinfo.thumbnail
+                                } 
+                            }
+
+                            msg.channel.send({embed: AddedQueueMsg});
                         }
                         else{
                             serverqueue[1][0] = songinfo;
@@ -105,7 +179,7 @@ client.on('message',async (msg) => {
                 }
             }).catch(async (err) => {
                 
-                msg.channel.send("Unable to play the song you requested");
+                msg.channel.send("Unable to play the song you requested :pensive: ");
                 if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
                     await msg.guild.voice.channel.leave();
                     Songqueue.delete(msg.guild.id);
@@ -115,13 +189,13 @@ client.on('message',async (msg) => {
         }
         else{
             if(!serverqueue){
-                msg.channel.send("Nothing to "+args[1]);
+                msg.channel.send("Nothing to "+args[1]+" :confused: ");
                 return;
             }
             try{
                 VoiceChannelConnection = await HandlingVoiceChannel(msg);
             }catch(err){
-                msg.channel.send("Some error occured");
+                msg.channel.send("Some error occured :pensive: ");
                 if(!serverqueue && msg.guild.voice && msg.guild.voice.channel){
                     await msg.guild.voice.channel.leave();
                     Songqueue.delete(msg.guild.id);
@@ -148,7 +222,7 @@ client.on('message',async (msg) => {
                 PauseMusic(serverqueue[2],args[1],msg);
             }
             if(args[1]==commands[5]){
-                msg.channel.send("Skipped");
+                msg.channel.send("Skipped :fast_forward: ");
                 SkipMusic(msg);
             }
             if(args[1]==commands[4]){
@@ -157,7 +231,7 @@ client.on('message',async (msg) => {
 
             if(args[1]==commands[6]){
                 if(serverqueue[3].length <= 0){
-                    msg.channel.send("Nothing to Recommend. Play atleast one song");
+                    msg.channel.send("Nothing to Recommend :x: .\nPlay atleast one song");
                     
                 }
                 else{
@@ -177,7 +251,7 @@ client.on('message',async (msg) => {
                     playMusic(msg,serverqueue[1][0]);
 
                     if(serverqueue[3].size <= 3){
-                        msg.channel.send("Play some more songs for better recommendation");
+                        msg.channel.send("`Play some more songs for better recommendation` :eyes:");
                     }
                 }
             }
@@ -217,6 +291,8 @@ function getRandomKey(collection) {
 }
 
 let StopMusic = async (msg) => {
+
+    msg.channel.send("Your Queue is Empty.\nThanks for using me :wave: ");
     if(msg.guild.voice && msg.guild.voice.channel){
         await msg.guild.voice.channel.leave();
     }
@@ -234,18 +310,18 @@ let PauseMusic = async (Dispatcher,cmd,msg) =>{
     if(cmd == 'pause'){
         try{
             await Dispatcher.pause();
-            msg.channel.send("Paused");
+            msg.channel.send("Paused :arrow_forward:");
         }catch(err){
-            console.log(err);
-            msg.channel.send("Unable to pause");
+            
+            msg.channel.send("Unable to pause :pensive:");
         }
     }
     else{
         try{
             await Dispatcher.resume();
-            msg.channel.send("Resumed");
+            msg.channel.send("Resumed :pause_button:");
         }catch(err){
-            msg.channel.send("Unable to start");
+            msg.channel.send("Unable to start :pensive: ");
         }
     }
 }
@@ -254,11 +330,11 @@ let playMusic = async (msg,song) => {
 
     let serverqueue = Songqueue.get(msg.guild.id);
     if(!song){
-        console.log(song);
+        
         if(msg.guild.voice && msg.guild.voice.channel){
             await msg.guild.voice.channel.leave();
         }
-        msg.channel.send("Queue is Empty");
+        msg.channel.send("Your Queue is Empty.\nThanks for using me :wave: ");
         Songqueue.delete(msg.guild.id);
         return;
     }
@@ -276,7 +352,7 @@ let playMusic = async (msg,song) => {
         });
         Dispatcher.on("error",async (err) => {
             
-            msg.channel.send("Unable to play the music");
+            msg.channel.send("Unable to play the music :pensive: ");
             if(msg.guild.voice && msg.guild.voice.channel){
                 await msg.guild.voice.channel.leave();
             }
@@ -286,10 +362,17 @@ let playMusic = async (msg,song) => {
 
         
         
-    
+    const PlayingMusicMsg = {
+        color: '#A5E9E1',
+        title: song.title,
+        description: 'Playing now :musical_note:',
+        image: {
+            url: song.thumbnail
+        }
+    }
     
 
-    msg.channel.send("Playing now "+song.title);   
+    msg.channel.send({embed: PlayingMusicMsg});   
     
 
 }
@@ -318,22 +401,22 @@ const HandlingVoiceChannel = (async (msg) =>{
     const AuthorVoiceChannel = msg.member.voice.channel;
     let ConnectionsToVoiceChannel = true,dispacter=null;
     if(!AuthorVoiceChannel){
-        msg.reply("You must be connected to any Voice Channel");
+        msg.reply("You must be connected to any Voice Channel :anguished: ");
         ConnectionsToVoiceChannel = false;
     }
     else{
         if(msg.guild.voice && msg.guild.voice.channel){
             if(msg.member.voice.channel.id != msg.guild.voice.channelID){
                 
-                    msg.reply("Please join "+msg.guild.voice.channel.name+" Channel")
-                
+                    msg.reply("Please join "+msg.guild.voice.channel.name+" Channel :point_left: ")
+                    ConnectionsToVoiceChannel = false;
             }
         }
         else{
             try{
                 dispacter = await AuthorVoiceChannel.join();
             }catch(err){
-                msg.channel.send("Unable to join "+AuthorVoiceChannel.name+" Channel");
+                msg.channel.send("Unable to join "+AuthorVoiceChannel.name+" Channel :point_left: ");
                 ConnectionsToVoiceChannel = false;
             }
         }

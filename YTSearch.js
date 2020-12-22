@@ -23,7 +23,8 @@ let youtubeSearch = async (SongToSearch) =>{
         
         return {   
             id: songInfo.href,
-            title: songInfo.innerText
+            title: songInfo.innerText,
+            thumbnail: songInfo.parentElement.parentElement.parentElement.firstElementChild.firstElementChild.firstElementChild.firstElementChild.src
         }
     });       
     SongInfo.title=SongInfo.title.split('\n')[0];
