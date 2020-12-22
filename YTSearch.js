@@ -17,6 +17,7 @@ let youtubeSearch = async (SongToSearch) =>{
     const url = "https://www.youtube.com/watch?v="+SongToSearch;
     
     await page.goto(url);
+    await page.setCacheEnabled(false);
     await page.waitForSelector('a[class="yt-simple-endpoint style-scope ytd-compact-video-renderer')
     const SongInfo = await page.$eval('a[class="yt-simple-endpoint style-scope ytd-compact-video-renderer',
 (songInfo) => {
