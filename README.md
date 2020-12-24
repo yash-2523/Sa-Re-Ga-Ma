@@ -1,4 +1,4 @@
-# Sa Re Ga Ma
+# Sa Re Ga Ma :musical_note:
 A Discord Music Bot which plays and recommends amazing songs for you :sunglasses:! 
 
 # Dependencies
