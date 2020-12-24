@@ -14,7 +14,7 @@ skip - To skip currently playing song <br/>
 stop - To stop playing songs <br/>
 
 # All Commands
-### Note - Prefix is '# ' (hash and a 'space') <br/>
+## Note - Prefix is '# ' (hash and a 'space') <br/>
 prefix help <br/>
 prefix play <br/>
 prefix playnow <br/>
