@@ -16,8 +16,8 @@ stop - To stop playing songs <br/>
 # All Commands
 ## Note - Prefix is '# ' (hash and a 'space') <br/>
 prefix help <br/>
-prefix play <br/>
-prefix playnow <br/>
+prefix play <songname><br/>
+prefix playnow <songname><br/>
 prefix recommend <br/>
 prefix pause <br/>
 prefix resume <br/>
