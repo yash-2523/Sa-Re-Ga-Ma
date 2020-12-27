@@ -23,3 +23,6 @@ stop - To stop playing songs <br/>
  \# resume <br/>
  \# stop <br/>
  \# skip 
+ 
+ # Invite To your server
+ Link: `https://discord.com/api/oauth2/authorize?client_id=784797651094732820&permissions=8&scope=bot`
