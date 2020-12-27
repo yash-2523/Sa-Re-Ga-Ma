@@ -71,11 +71,11 @@ client.on('message',async (msg) => {
 
                 fields: [
                     {
-                        name: `# play`,
+                        name: `# play <Song name>`,
                         value: 'To play your next desired song',
                     },
                     {
-                        name: `# playnow`,
+                        name: `# playnow <Song name>`,
                         value: 'To play your desired song right now',
                     },
                     {
