@@ -298,7 +298,7 @@ function getRandomKey(collection) {
 
 let StopMusic = async (msg) => {
 
-    msg.channel.send("Your Queue is Empty.\nThanks for using me :wave: ");
+    msg.channel.send("Your Queue is Empty.\nThanks for playing songs :wave: ");
     if(msg.guild.voice && msg.guild.voice.channel){
         await msg.guild.voice.channel.leave();
     }
