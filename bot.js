@@ -52,6 +52,15 @@ client.on('guildCreate', (guild)=>{
     });
 })
 
+client.on('voiceStateUpdate',(oldvoice,newvoice)=>{
+    if(Songqueue.get(newvoice.guild.id)){
+        if(!newvoice.channel){
+            Songqueue.delete(newvoice.guild.id);
+        }
+    }
+})
+
+
 client.on('message',async (msg) => {
 
     
@@ -270,6 +279,8 @@ client.on('message',async (msg) => {
 
     }
 });
+
+
 
 function getRandomKey(collection) {
     let mn=Number.MAX_SAFE_INTEGER,mx=0;
