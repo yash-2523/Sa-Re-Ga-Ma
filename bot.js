@@ -80,11 +80,11 @@ client.on('message',async (msg) => {
 
                 fields: [
                     {
-                        name: `# play`,
+                        name: `# play <Song name>`,
                         value: 'To play your next desired song',
                     },
                     {
-                        name: `# playnow`,
+                        name: `# playnow <Song name>`,
                         value: 'To play your desired song right now',
                     },
                     {
@@ -248,7 +248,6 @@ client.on('message',async (msg) => {
                 else{
                     
                     let RecommendationSong = getRandomKey(serverqueue[3]);
-                    console.log(RecommendationSong);
                        
                     let recomendedSong = RecommendationSong[0][Math.floor(Math.random() * RecommendationSong[0].length)];
                     serverqueue[3].set(recomendedSong,serverqueue[3].get(recomendedSong)+1);
@@ -310,7 +309,7 @@ function getRandomKey(collection) {
 
 let StopMusic = async (msg) => {
 
-    msg.channel.send("Your Queue is Empty.\nThanks for using me :wave: ");
+    msg.channel.send("Your Queue is Empty.\nThanks for playing songs :wave: ");
     if(msg.guild.voice && msg.guild.voice.channel){
         await msg.guild.voice.channel.leave();
     }
